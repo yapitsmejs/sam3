@@ -3,16 +3,43 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "my-project"
+name = "sam3-toolkit"
 version = "0.1.0"
-description = "<one-line project description>"
+description = "Utilities for running Segment Anything 3 (SAM3) segmentation."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [{ name = "Yap Joon Siong" }]
-dependencies = []
+dependencies = [
+    "numpy>=1.26,<2",  # upper bound inherited from sam3
+    "matplotlib>=3.8",
+    "pillow>=10",
+]
 
 [project.optional-dependencies]
+# The SAM3 model stack. Kept out of core deps so CI (no GPU) stays light.
+sam3 = [
+    "sam3",  # pinned to an upstream commit in [tool.uv.sources]
+    "torch==2.10.*",  # version recommended by the SAM3 README; cu128 wheels below
+    "torchvision==0.25.*",
+    # sam3 imports triton unconditionally; upstream triton has no Windows wheels.
+    "triton-windows>=3.6,<3.7; sys_platform == 'win32'",
+    # sam3.model_builder imports pkg_resources, removed from newer setuptools.
+    "setuptools>=70,<81",
+    "einops>=0.8",  # imported by sam3 but missing from its declared deps
+]
+# Interactive experimentation (notebooks/), incl. sam3.visualization_utils deps.
+notebook = [
+    "jupyterlab>=4",
+    "ipykernel>=6",
+    "ipywidgets>=8",
+    "truststore>=0.10",  # use the OS certificate store (corporate TLS inspection)
+    "opencv-python>=4.8",
+    "pycocotools>=2.0.10",
+    "pandas>=2",
+    "scikit-image>=0.22",
+    "scikit-learn>=1.4",
+]
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
@@ -22,10 +49,23 @@ dev = [
 
 # CLI entry point (uncomment if this project ships a command-line tool).
 # [project.scripts]
-# my-project = "myProject.cli:main"
+# sam3-toolkit = "sam3Toolkit.cli:main"
+
+# CUDA 12.8 wheels: the minimum for Blackwell (sm_120) GPUs. macOS has no CUDA
+# build, so it falls back to the default PyPI wheels.
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128", marker = "sys_platform != 'darwin'" }]
+torchvision = [{ index = "pytorch-cu128", marker = "sys_platform != 'darwin'" }]
+# PyPI sam3 0.1.4 ships without its BPE vocab file; fixed upstream after that release.
+sam3 = { url = "https://github.com/facebookresearch/sam3/archive/f1647e8d0c1d280991f4d1b7d974c2704537fe66.zip" }
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/myProject"]
+packages = ["src/sam3Toolkit"]
 
 [tool.ruff]
 line-length = 100
@@ -45,7 +85,7 @@ line-ending = "lf"
 [tool.mypy]
 # Enforces the "type hints required on public functions" rule from
 # CONVENTIONS.md. Scoped to the shipped package; tests are not type-checked.
-files = ["src/myProject"]
+files = ["src/sam3Toolkit"]
 python_version = "3.12"
 disallow_untyped_defs = true
 disallow_incomplete_defs = true

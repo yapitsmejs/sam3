@@ -1,23 +1,61 @@
-# myProject
+# sam3Toolkit
 
-<One-line project description.>
+Utilities for running Segment Anything 3 (SAM3) segmentation.
+
+> **Status:** experimentation phase. `notebooks/sam3Playground.ipynb` is the scratchpad
+> for exploring SAM3; the `sam3Toolkit` package itself is still an empty skeleton.
 
 ## Install
 
-This project is managed with [`uv`](https://docs.astral.sh/uv/).
+This project is managed with [`uv`](https://docs.astral.sh/uv/) on Python 3.12.
 
 ```bash
-uv sync --extra dev          # create .venv and install dev dependencies (pytest, ruff)
+uv sync --extra dev          # package + dev tools only (what CI uses; no torch)
+uv sync --all-extras         # + SAM3 stack (CUDA 12.8 PyTorch) + Jupyter
 ```
+
+Extras:
+
+| Extra      | Contents                                                                 |
+| ---------- | ------------------------------------------------------------------------ |
+| `sam3`     | `sam3` (pinned upstream commit), `torch` 2.10 / `torchvision` 0.25 from the cu128 index, `triton-windows` on Windows |
+| `notebook` | JupyterLab, ipykernel, and the libraries `sam3.visualization_utils` needs |
+| `dev`      | pytest, ruff, mypy                                                       |
+
+### SAM3 checkpoint access
+
+The weights on Hugging Face are gated:
+
+1. Request access at <https://huggingface.co/facebook/sam3> (manual approval).
+2. `uv run hf auth login` with a *read* token.
+
+The first model load downloads the checkpoint (~3.5 GB) into the Hugging Face cache.
+
+### Environment notes
+
+- **CUDA 12.8 wheels** are required for Blackwell GPUs (sm_120); `pyproject.toml`
+  routes `torch`/`torchvision` to the PyTorch cu128 index (except on macOS).
+- **`sam3` is installed from a pinned upstream commit**, not PyPI: the PyPI 0.1.4 wheel
+  is missing the tokenizer's BPE vocab file. Bump the commit in `[tool.uv.sources]`.
+- **Windows:** `sam3` imports `triton` unconditionally, so the `triton-windows` wheel is
+  used instead of upstream triton.
+- **Corporate TLS inspection:** `huggingface_hub` uses certifi, which doesn't trust the
+  corporate CA. Call `truststore.inject_into_ssl()` before downloading (the notebook does).
 
 ## Usage
 
-<Describe how to run the project.>
+Open `notebooks/sam3Playground.ipynb` with the `.venv` kernel (VS Code), or
+`uv run jupyter lab`. Put your own images in `data/` (git-ignored).
 
 ```python
-import myProject
+from PIL import Image
+from sam3 import build_sam3_image_model
+from sam3.model.sam3_image_processor import Sam3Processor
 
-print(myProject.__version__)
+processor = Sam3Processor(build_sam3_image_model())
+state = processor.set_image(Image.open("data/myImage.jpg").convert("RGB"))
+state = processor.set_text_prompt(state=state, prompt="car")
+masks, boxes, scores = state["masks"], state["boxes"], state["scores"]
 ```
 
 ## Development
@@ -26,7 +64,7 @@ print(myProject.__version__)
 uv run pytest                 # run tests (dev loop, no coverage gate)
 uv run ruff check .           # lint
 uv run ruff format .          # format
-uv run mypy src/myProject     # type check
+uv run mypy src/sam3Toolkit     # type check
 uv run python scripts/check.py   # GATE: lint + format + types + tests + branch coverage ≥ 90%
 ```
 
@@ -53,27 +91,16 @@ These run the same gate as you do locally, so a red PR cannot merge:
 - **PR template** (`.github/PULL_REQUEST_TEMPLATE.md`) prompts contributors for
   the red-green workflow and the gate checklist.
 
-## Starting a new project from this template
+## Finishing project setup
 
-Copy this directory, rename the folder to your project's name, `git init` it,
-and hand the following prompt to your agent (any framework — Claude, Cursor,
-Codex, or other). Rename the **root folder yourself before invoking the
-agent** — the agent renames everything inside the project (the package
-directory and every file), but it cannot reliably rename the folder it is
-running inside. The folder name is cosmetic here: no file references it, so it
-does not affect the gate.
+This repo was created from a template whose setup was done partially: the package is
+renamed to `sam3Toolkit` and the SAM3 dependencies are in place, but the project intake,
+full README, and `plans/developmentPlan.md` were deferred until after experimenting.
+When you're ready to design the package, ask your agent to:
 
 ```
-Set up a new project from this template. Read `agenticProjectSetup.md` and
-follow every step in order: ask me the intake questions first, then do the
-mechanical rename and find-replace, propose dependencies to add, rewrite this
-README and create `plans/developmentPlan.md`, delete the example files and
-`agenticProjectSetup.md`, run a placeholder sweep, and run the gate
-(`uv run python scripts/check.py`). Report what you did and paste the gate
-output.
+Finish setting up this project. Read `agenticProjectSetup.md`: skip the rename and
+dependency steps (already done), run the intake questions with me, then write the
+README and plans/developmentPlan.md, delete the example files and
+`agenticProjectSetup.md`, run the placeholder sweep, and run the gate.
 ```
-
-The agent reads `agenticProjectSetup.md` for the full runbook (intake question
-set, exact substitutions, prose to write, cleanup, and the gate). That file is
-a throwaway setup guide — it is deleted as part of setup and is not part of the
-shipped project.

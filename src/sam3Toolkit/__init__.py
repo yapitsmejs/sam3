@@ -1,4 +1,4 @@
-"""<one-line project description>."""
+"""Utilities for running Segment Anything 3 (SAM3) segmentation."""
 
 from __future__ import annotations
 

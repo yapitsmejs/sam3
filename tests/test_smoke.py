@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import myProject
+import sam3Toolkit
 
 
 def testVersionIsSet():
-    assert isinstance(myProject.__version__, str)
-    assert myProject.__version__
+    assert isinstance(sam3Toolkit.__version__, str)
+    assert sam3Toolkit.__version__

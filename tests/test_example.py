@@ -1,11 +1,11 @@
 """Tests for ``clampValue`` -- written test-first (red), then implemented to green.
 
-See ``src/myProject/example.py`` and the "Testing" section of CONVENTIONS.md.
+See ``src/sam3Toolkit/example.py`` and the "Testing" section of CONVENTIONS.md.
 """
 
 from __future__ import annotations
 
-import myProject.example as example
+import sam3Toolkit.example as example
 
 
 def testClampValue_returnsValueWhenInRange():

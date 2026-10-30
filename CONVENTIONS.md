@@ -20,7 +20,7 @@ the quantity's name.
   - Unitless quantities are plain camelCase: `pixelWiseDelay`, `interpValues`,
     `phaseCorrection`.
 - **Modules / files & the import package:** camelCase — `normalizeSignal.py`,
-  `computeStats.py`, the package `myProject/`. Private modules lead with an
+  `computeStats.py`, the package `sam3Toolkit/`. Private modules lead with an
   underscore: `_chunking.py`, `_phaseCorrelationCore.py`.
 - **Functions:** camelCase public — `formImage`, `computeFbr`, `getTxPos`.
   Private helpers are `_camelCase` — `_robustMode`, `_selfcheck`. Backend-dispatch
@@ -38,7 +38,7 @@ the quantity's name.
 - **Type hints are required** on public functions. Use PEP 604/585 style:
   `x | None`, `list[int]`, `dict[str, float]`, `tuple[float, float] | None`. Do
   not use `typing.Optional` / `typing.List`. Enforced by **mypy**
-  (`uv run mypy src/myProject`, and via the gate) — the gate fails on an untyped
+  (`uv run mypy src/sam3Toolkit`, and via the gate) — the gate fails on an untyped
   public function.
 - **Group imports** in order: future → stdlib → third-party → local, with a
   blank line between groups. Let `ruff` (rule `I`) own the ordering.

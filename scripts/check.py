@@ -6,10 +6,10 @@ Run before pushing or opening a PR::
 
 The dev loop is just ``uv run pytest`` (fast, no coverage gate). This script is
 the enforcement layer: it fails if ruff is unhappy, formatting would change,
-mypy finds a type error, or branch coverage on ``myProject`` drops below the
+mypy finds a type error, or branch coverage on ``sam3Toolkit`` drops below the
 threshold below.
 
-Rename ``myProject`` -> your package's import name when starting a project from
+Rename ``sam3Toolkit`` -> your package's import name when starting a project from
 this template (see README "Starting a new project").
 """
 
@@ -20,7 +20,7 @@ import sys
 
 # Coverage target is the package import name. Find-replace when renaming the
 # package (same target as pyproject.toml `packages = [...]` and the tests).
-PACKAGE = "myProject"
+PACKAGE = "sam3Toolkit"
 COVERAGE_FAIL_UNDER = 90
 
 
